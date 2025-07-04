@@ -5,7 +5,7 @@ require_once 'templates/header_mahasiswa.php';
 
 $mahasiswa_id = $_SESSION['user_id'];
 $message = '';
-
+ 
 // Handle pendaftaran
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['daftar'])) {
     $mata_praktikum_id = (int)$_POST['mata_praktikum_id'];
