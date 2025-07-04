@@ -1,13 +1,9 @@
 <?php
-session_start();
+require_once 'config.php';
 
-// Hapus semua variabel session
-$_SESSION = array();
-
-// Hancurkan session
+// Hapus semua session
 session_destroy();
 
-// Redirect ke halaman login
-header("Location: ../login.php");
-exit;
+// Redirect ke halaman login utama
+redirectTo('login.php');
 ?>

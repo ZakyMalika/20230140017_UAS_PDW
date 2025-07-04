@@ -1,103 +1,177 @@
 <?php
 require_once 'config.php';
 
-$message = '';
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nama = trim($_POST['nama']);
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
-    $role = trim($_POST['role']);
-
-    // Validasi sederhana
-    if (empty($nama) || empty($email) || empty($password) || empty($role)) {
-        $message = "Semua field harus diisi!";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Format email tidak valid!";
-    } elseif (!in_array($role, ['mahasiswa', 'asisten'])) {
-        $message = "Peran tidak valid!";
+// Redirect jika sudah login
+if (isLoggedIn()) {
+    if (isAsisten()) {
+        redirectTo('asisten/dashboard.php');
     } else {
-        // Cek apakah email sudah terdaftar
-        $sql = "SELECT id FROM users WHERE email = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $stmt->store_result();
-
-        if ($stmt->num_rows > 0) {
-            $message = "Email sudah terdaftar. Silakan gunakan email lain.";
-        } else {
-            // Hash password untuk keamanan
-            $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-
-            // Simpan ke database
-            $sql_insert = "INSERT INTO users (nama, email, password, role) VALUES (?, ?, ?, ?)";
-            $stmt_insert = $conn->prepare($sql_insert);
-            $stmt_insert->bind_param("ssss", $nama, $email, $hashed_password, $role);
-
-            if ($stmt_insert->execute()) {
-                header("Location: login.php?status=registered");
-                exit();
-            } else {
-                $message = "Terjadi kesalahan. Silakan coba lagi.";
-            }
-            $stmt_insert->close();
-        }
-        $stmt->close();
+        redirectTo('mahasiswa/dashboard.php');
     }
 }
-$conn->close();
+
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nama = trim($_POST['nama']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+    $role = $_POST['role'];
+    
+    // Validasi
+    if (empty($nama) || empty($email) || empty($password) || empty($confirm_password)) {
+        $error = 'Semua field harus diisi';
+    } elseif ($password !== $confirm_password) {
+        $error = 'Password dan konfirmasi password tidak cocok';
+    } elseif (strlen($password) < 6) {
+        $error = 'Password minimal 6 karakter';
+    } elseif (!in_array($role, ['mahasiswa', 'asisten'])) {
+        $error = 'Role tidak valid';
+    } else {
+        // Check email sudah ada
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        
+        if ($stmt->fetch()) {
+            $error = 'Email sudah terdaftar';
+        } else {
+            // Insert user baru
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("INSERT INTO users (nama, email, password, role) VALUES (?, ?, ?, ?)");
+            
+            if ($stmt->execute([$nama, $email, $hashedPassword, $role])) {
+                $success = 'Registrasi berhasil! Silakan login.';
+            } else {
+                $error = 'Terjadi kesalahan saat registrasi';
+            }
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Registrasi Pengguna</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background-color: #fff; padding: 20px 40px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 320px; }
-        h2 { text-align: center; color: #333; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #555; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .btn { background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
-        .btn:hover { background-color: #218838; }
-        .message { color: red; text-align: center; margin-bottom: 15px; }
-        .login-link { text-align: center; margin-top: 15px; }
-        .login-link a { color: #007bff; text-decoration: none; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - SIMPRAK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h2>Registrasi</h2>
-        <?php if (!empty($message)): ?>
-            <p class="message"><?php echo $message; ?></p>
-        <?php endif; ?>
-        <form action="register.php" method="post">
-            <div class="form-group">
-                <label for="nama">Nama Lengkap</label>
-                <input type="text" id="nama" name="nama" required>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full mx-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="flex justify-center mb-4">
+                <i class="fas fa-graduation-cap text-5xl text-blue-600"></i>
             </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+            <h1 class="text-3xl font-bold text-gray-900">SIMPRAK</h1>
+            <p class="text-gray-600 mt-2">Daftar akun baru</p>
+        </div>
+
+        <!-- Register Form -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <?php if ($error): ?>
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <?= htmlspecialchars($error) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($success): ?>
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <?= htmlspecialchars($success) ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-6">
+                <div>
+                    <label for="nama" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-1"></i>Nama Lengkap
+                    </label>
+                    <input type="text" 
+                           id="nama" 
+                           name="nama" 
+                           required 
+                           value="<?= htmlspecialchars($_POST['nama'] ?? '') ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                           placeholder="Masukkan nama lengkap">
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-1"></i>Email
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           required 
+                           value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                           placeholder="masukkan email Anda">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-1"></i>Password
+                    </label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                           placeholder="Minimal 6 karakter">
+                </div>
+
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-1"></i>Konfirmasi Password
+                    </label>
+                    <input type="password" 
+                           id="confirm_password" 
+                           name="confirm_password" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                           placeholder="Ulangi password">
+                </div>
+
+                <div>
+                    <label for="role" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user-tag mr-1"></i>Role
+                    </label>
+                    <select id="role" 
+                            name="role" 
+                            required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <option value="">Pilih Role</option>
+                        <option value="mahasiswa" <?= ($_POST['role'] ?? '') === 'mahasiswa' ? 'selected' : '' ?>>Mahasiswa</option>
+                        <option value="asisten" <?= ($_POST['role'] ?? '') === 'asisten' ? 'selected' : '' ?>>Asisten</option>
+                    </select>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 transition">
+                    <i class="fas fa-user-plus mr-2"></i>Daftar
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">
+                    Sudah punya akun? 
+                    <a href="login.php" class="text-blue-600 hover:text-blue-800 font-medium">
+                        Login di sini
+                    </a>
+                </p>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+
+            <div class="mt-4 text-center">
+                <a href="index.php" class="text-gray-500 hover:text-gray-700 text-sm">
+                    <i class="fas fa-arrow-left mr-1"></i>Kembali ke Beranda
+                </a>
             </div>
-            <div class="form-group">
-                <label for="role">Daftar Sebagai</label>
-                <select id="role" name="role" required>
-                    <option value="mahasiswa">Mahasiswa</option>
-                    <option value="asisten">Asisten</option>
-                </select>
-            </div>
-            <button type="submit" class="btn">Daftar</button>
-        </form>
-        <div class="login-link">
-            <p>Sudah punya akun? <a href="login.php">Login di sini</a></p>
         </div>
     </div>
 </body>

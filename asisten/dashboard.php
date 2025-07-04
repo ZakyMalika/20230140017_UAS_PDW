@@ -1,10 +1,27 @@
 <?php
 // 1. Definisi Variabel untuk Template
+require_once '../config.php'; // pastikan koneksi database
 $pageTitle = 'Dashboard';
 $activePage = 'dashboard';
 
 // 2. Panggil Header
 require_once 'templates/header.php'; 
+
+$asisten_id = $_SESSION['user_id'];
+
+// Ambil 5 laporan terbaru yang belum dinilai
+$stmt = $pdo->prepare("
+    SELECT l.*, u.nama AS nama_mahasiswa, m.judul AS judul_modul, mp.nama AS nama_praktikum
+    FROM laporan l
+    JOIN users u ON l.mahasiswa_id = u.id
+    JOIN modul m ON l.modul_id = m.id
+    JOIN mata_praktikum mp ON m.mata_praktikum_id = mp.id
+    WHERE mp.asisten_id = ? AND l.status = 'dikumpulkan'
+    ORDER BY l.tanggal_upload DESC
+    LIMIT 5
+");
+$stmt->execute([$asisten_id]);
+$laporan_belum_dinilai = $stmt->fetchAll();
 ?>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -41,29 +58,42 @@ require_once 'templates/header.php';
 </div>
 
 <div class="bg-white p-6 rounded-lg shadow-md mt-8">
-    <h3 class="text-xl font-bold text-gray-800 mb-4">Aktivitas Laporan Terbaru</h3>
-    <div class="space-y-4">
-        <div class="flex items-center">
-            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-4">
-                <span class="font-bold text-gray-500">BS</span>
-            </div>
-            <div>
-                <p class="text-gray-800"><strong>Budi Santoso</strong> mengumpulkan laporan untuk <strong>Modul 2</strong></p>
-                <p class="text-sm text-gray-500">10 menit lalu</p>
-            </div>
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Laporan Belum Dinilai</h3>
+    <?php if (empty($laporan_belum_dinilai)): ?>
+        <div class="text-center py-8">
+            <i class="fas fa-check-circle text-4xl text-green-300 mb-2"></i>
+            <p class="text-gray-500">Tidak ada laporan yang perlu dinilai.</p>
         </div>
-        <div class="flex items-center">
-            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-4">
-                <span class="font-bold text-gray-500">CL</span>
-            </div>
-            <div>
-                <p class="text-gray-800"><strong>Citra Lestari</strong> mengumpulkan laporan untuk <strong>Modul 2</strong></p>
-                <p class="text-sm text-gray-500">45 menit lalu</p>
-            </div>
+    <?php else: ?>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mahasiswa</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Praktikum</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Modul</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Upload</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <?php foreach ($laporan_belum_dinilai as $l): ?>
+                        <tr>
+                            <td class="px-4 py-2"><?= htmlspecialchars($l['nama_mahasiswa']) ?></td>
+                            <td class="px-4 py-2"><?= htmlspecialchars($l['nama_praktikum']) ?></td>
+                            <td class="px-4 py-2"><?= htmlspecialchars($l['judul_modul']) ?></td>
+                            <td class="px-4 py-2"><?= formatTanggal($l['tanggal_upload']) ?></td>
+                            <td class="px-4 py-2 space-x-2">
+                                <a href="laporan_detail.php?id=<?= $l['id'] ?>" class="text-blue-600 hover:underline"><i class="fas fa-eye"></i> Detail</a>
+                                <a href="laporan_nilai.php?id=<?= $l['id'] ?>" class="text-green-600 hover:underline"><i class="fas fa-check"></i> Nilai</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
-
 
 <?php
 // 3. Panggil Footer
