@@ -39,6 +39,7 @@ $laporan = $stmt->fetchAll();
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Praktikum</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Modul</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Upload</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">File</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                     </tr>
@@ -50,6 +51,15 @@ $laporan = $stmt->fetchAll();
                             <td class="px-4 py-2"><?= htmlspecialchars($l['nama_praktikum']) ?></td>
                             <td class="px-4 py-2"><?= htmlspecialchars($l['judul_modul']) ?></td>
                             <td class="px-4 py-2"><?= formatTanggal($l['tanggal_upload']) ?></td>
+                            <td class="px-4 py-2">
+                                <?php if (!empty($l['file_laporan'])): ?>
+                                    <a href="../uploads/laporan/<?= htmlspecialchars($l['file_laporan']) ?>" target="_blank" class="text-blue-600 hover:underline">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-gray-400">-</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="px-4 py-2">
                                 <?php if ($l['status'] == 'dinilai'): ?>
                                     <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Dinilai</span>
