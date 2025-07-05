@@ -1,0 +1,16 @@
+MAHASISWA
+![image](https://github.com/user-attachments/assets/7b628dd3-760f-4e48-9aa3-346cd2a2e7a9)
+![image](https://github.com/user-attachments/assets/49d70458-21d0-4a52-b57e-bc08fd6c2aba)
+![image](https://github.com/user-attachments/assets/8c9a5050-5685-4dad-986e-b21419996475)
+![image](https://github.com/user-attachments/assets/d4097999-281d-467d-82ad-bd1670f24fb2)
+![image](https://github.com/user-attachments/assets/0872f5c0-1b08-472e-a1e8-43c7daa2daef)
+![image](https://github.com/user-attachments/assets/c66e1781-6d10-4240-9dda-e4b857d68cf0)
+![image](https://github.com/user-attachments/assets/5c51cd44-044e-4835-9584-ebd1fcb3db3c)
+![image](https://github.com/user-attachments/assets/5c5cd9de-9a94-4111-9f62-c58128459b89)
+ASISTEN
+![image](https://github.com/user-attachments/assets/1fcb5ff5-bf1b-4dff-a42b-55bc0d4ec80c)
+![image](https://github.com/user-attachments/assets/4e1611a4-a204-4f49-8770-e1b72af5d4c9)
+![image](https://github.com/user-attachments/assets/90fa4cc3-8a88-4bb8-b5bb-1a3448c5d9cd)
+![image](https://github.com/user-attachments/assets/ed49a606-ce42-4c11-be04-f81bab9161ac)
+![image](https://github.com/user-attachments/assets/54e1c16d-3877-4dd3-9ef5-29d1a1f35177)
+![image](https://github.com/user-attachments/assets/a21f2838-6829-4a99-ac81-d1142026efb4)
